@@ -16,7 +16,7 @@ contract Lottery is OwnableUpgradeable {
     // Allocation for first/sencond/third reward
     uint8[3] public allocation;
     // The TOKEN to buy lottery
-    IBEP20 public egg;
+    IBEP20 public popcorn;
     // The Lottery NFT for tickets
     LotteryNFT public lotteryNFT;
     // adminAddress
@@ -63,13 +63,13 @@ contract Lottery is OwnableUpgradeable {
     }
 
     function initialize(
-        IBEP20 _egg,
+        IBEP20 _popcorn,
         LotteryNFT _lottery,
         uint256 _minPrice,
         uint8 _maxNumber,
         address _adminAddress
     ) public initializer {
-        egg = _egg;
+        popcorn = _popcorn;
         lotteryNFT = _lottery;
         minPrice = _minPrice;
         maxNumber = _maxNumber;
@@ -221,7 +221,7 @@ contract Lottery is OwnableUpgradeable {
         require(!drawingPhase, 'drawing, can not buy now');
         require (_price >= minPrice, 'price must above minPrice');
         uint256 tokenId = _buySingleTicket(_price, _numbers);
-        egg.safeTransferFrom(address(msg.sender), address(this), _price);
+        popcorn.safeTransferFrom(address(msg.sender), address(this), _price);
         emit Buy(msg.sender, tokenId);
     }
 
@@ -233,7 +233,7 @@ contract Lottery is OwnableUpgradeable {
             _buySingleTicket(_price, _numbers[i]);
             totalPrice.add(_price);
         }
-        egg.safeTransferFrom(address(msg.sender), address(this), totalPrice);
+        popcorn.safeTransferFrom(address(msg.sender), address(this), totalPrice);
         emit MultiBuy(msg.sender, totalPrice);
     }
 
@@ -243,7 +243,7 @@ contract Lottery is OwnableUpgradeable {
         uint256 reward = getRewardView(_tokenId);
         lotteryNFT.claimReward(_tokenId);
         if(reward>0) {
-            safeEggTransfer(address(msg.sender), reward);
+            safePopcornTransfer(address(msg.sender), reward);
         }
         emit Claim(msg.sender, _tokenId, reward);
     }
@@ -260,7 +260,7 @@ contract Lottery is OwnableUpgradeable {
         }
         lotteryNFT.multiClaimReward(_tickets);
         if(totalReward>0) {
-            safeEggTransfer(address(msg.sender), totalReward);
+            safePopcornTransfer(address(msg.sender), totalReward);
         }
         emit MultiClaim(msg.sender, totalReward);
     }
@@ -347,13 +347,13 @@ contract Lottery is OwnableUpgradeable {
         return reward.div(1e12);
     }
 
-    // Safe egg transfer function, just in case if rounding error causes pool to not have enough EGGs.
-    function safeEggTransfer(address _to, uint256 _amount) internal {
-        uint256 eggBal = egg.balanceOf(address(this));
-        if (_amount > eggBal) {
-            egg.transfer(_to, eggBal);
+    // Safe popcorn transfer function, just in case if rounding error causes pool to not have enough POPCORN.
+    function safePopcornTransfer(address _to, uint256 _amount) internal {
+        uint256 popcornBal = popcorn.balanceOf(address(this));
+        if (_amount > popcornBal) {
+            popcorn.transfer(_to, popcornBal);
         } else {
-            egg.transfer(_to, _amount);
+            popcorn.transfer(_to, _amount);
         }
     }
 
@@ -364,7 +364,7 @@ contract Lottery is OwnableUpgradeable {
 
     // Withdraw without caring about rewards. EMERGENCY ONLY.
     function adminWithdraw(uint256 _amount) public onlyAdmin {
-        egg.safeTransfer(address(msg.sender), _amount);
+        popcorn.safeTransfer(address(msg.sender), _amount);
         emit DevWithdraw(msg.sender, _amount);
     }
 
